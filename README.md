@@ -54,14 +54,14 @@ This project utilizes **YOLOv8** (Ultralytics) for visual object detection and *
 * Lightweight architecture (`yolov8n.pt`) compatible with edge GPU deployment
 
 ## Evaluation Metrics
-The license plate detection model achieved the following metrics[cite: 6]:
+The license plate detection model achieved the following metrics:
 
 | Metric | Value |
 | :--- | :--- |
 | **Precision** | High Convergence |
 | **Recall** | High Convergence |
-| **mAP@0.5** | **> 0.99**[cite: 6] |
-| **mAP@0.5:0.95** | **~ 0.67**[cite: 6] |
+| **mAP0.5** | **> 0.99** |
+| **mAP0.5:0.95** | **~ 0.67** |
 
 Smart-Parking-System
 │
@@ -80,12 +80,12 @@ Smart-Parking-System
 
 ## Technologies Used
 * **Python**
-* **YOLOv8 (Ultralytics)**[cite: 1, 6]
-* **EasyOCR**[cite: 1, 5]
+* **YOLOv8 (Ultralytics)**
+* **EasyOCR**
 * **OpenCV**
-* **SQLite3**[cite: 2]
-* **Streamlit**[cite: 5]
-* **PyTorch / CUDA**[cite: 6]
+* **SQLite3**
+* **Streamlit**
+* **PyTorch / CUDA**
 
 ---
 
@@ -99,8 +99,7 @@ Smart-Parking-System
 ---
 
 ## Team Members
-* Member 1
-* Member 2
-* Member 3
-
-* Member 4
+* Kholoud Mohamed
+* Maryam Adel
+* Menna Khaled
+*Rawan Mohamed
