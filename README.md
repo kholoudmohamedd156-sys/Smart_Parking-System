@@ -43,7 +43,7 @@ dataset/
 └── test/
     ├── images/
     └── labels/
-
+```
 
 ## Model
 This project utilizes **YOLOv8** (Ultralytics) for visual object detection and **EasyOCR** for textual recognition.
