@@ -93,4 +93,5 @@ The license plate detection model achieved the following metrics:
 * Kholoud Mohamed
 * Maryam Adel
 * Menna Khaled
-*Rawan Mohamed
+* Rawan Mohamed
+
