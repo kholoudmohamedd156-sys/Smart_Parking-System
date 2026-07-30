@@ -90,10 +90,11 @@ The license plate detection model achieved the following metrics:
 ---
 
 ## Team Members
-* Kholoud Mohamed
-* Maryam Adel
-* Menna Khaled
-* Rawan Mohamed
+* [Kholoud Mohamed](https://www.linkedin.com/in/kholouddmohamed?)
+* [Maryam Adel](https://www.linkedin.com/in/maryam-hassan-8a9b4a414)
+* [Menna Khaled](https://eg.linkedin.com/in/mennaallahkhaled)
+* [Rawan Mohamed](https://www.linkedin.com/in/rawan-mohamed5?)
 
+---
 ## video
-<!-- Failed to upload "Smart_Parking_System(NTI).mp4" -->
+
