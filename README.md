@@ -51,22 +51,53 @@ This project utilizes **YOLOv8** (Ultralytics) for visual object detection and *
 * High detection accuracy on localized targets
 * Lightweight architecture (`yolov8n.pt`) compatible with edge GPU deployment
 
+## Evaluation Metrics
+The license plate detection model achieved the following metrics[cite: 6]:
+
+| Metric | Value |
+| :--- | :--- |
+| **Precision** | High Convergence |
+| **Recall** | High Convergence |
+| **mAP@0.5** | **> 0.99**[cite: 6] |
+| **mAP@0.5:0.95** | **~ 0.67**[cite: 6] |
+
+Smart-Parking-System
+│
+├── dataset/             # Annotated slot & license plate images
+├── models/              # Trained weights (e.g., best.pt)
+├── database.py          # SQLite database connection & CRUD logic
+├── app.py               # Streamlit web interface & UI components
+├── README.md            # Project documentation
+└── requirements.txt     # Dependencies
+
+### Dashboard Capabilities
+* **Gate & Lot Analysis:** Simultaneous analysis of entry gate plate capture and overall lot occupancy status[cite: 5].
+* **Visual Slot Highlights:** Bounding box visualization (Green = Empty, Red = Occupied, Orange = Newly Assigned)[cite: 5].
+* **Where Is My Car?:** Real-time lookup query to find parked vehicles by plate number[cite: 5].
+* **Logs & History:** Tables displaying active parking slots and archived entry/exit history[cite: 5].
+
+## Technologies Used
+* **Python**
+* **YOLOv8 (Ultralytics)**[cite: 1, 6]
+* **EasyOCR**[cite: 1, 5]
+* **OpenCV**
+* **SQLite3**[cite: 2]
+* **Streamlit**[cite: 5]
+* **PyTorch / CUDA**[cite: 6]
+
 ---
 
-## Training
-Example training configuration (executed with CUDA acceleration on NVIDIA Quadro P620):
+## Future Work
+* Support live RTSP video stream feeds for continuous camera processing.
+* Deploy hardware triggers (e.g., Raspberry Pi gate barrier integration).
+* Add automated parking fee calculation based on duration.
+* Build a mobile application for drivers to reserve slots in advance.
+* Add defect and unauthorized vehicle parking alert systems.
 
-```python
-from ultralytics import YOLO
+---
 
-# Load pre-trained lightweight YOLOv8 model
-model = YOLO("yolov8n.pt")
-
-# Train model on custom parking/plate dataset
-model.train(
-    data="data.yaml",
-    epochs=100,
-    imgsz=640,
-    batch=16,
-    device=0
-)
+## Team Members
+* Member 1
+* Member 2
+* Member 3
+* Member 4
