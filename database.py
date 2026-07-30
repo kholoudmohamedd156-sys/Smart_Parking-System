@@ -1,135 +1,222 @@
 """
 database.py
-SQLite data layer for the Smart Parking System.
-Handles vehicle check-in / check-out, available-spot tracking, and history logs.
+All sqlite access lives here, in its own "database" folder. parking.db is
+created right next to this file (not wherever streamlit happens to be run
+from), so it doesn't matter what your working directory is when you run
+the app.
 """
 
 import sqlite3
-from datetime import datetime
-from contextlib import contextmanager
+import os
 
-DB_PATH = "parking.db"
+DB_PATH = os.path.join(os.path.dirname(__file__), "parking.db")
 
 
-@contextmanager
-def get_conn():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    try:
-        yield conn
-        conn.commit()
-    finally:
+def _connect():
+    return sqlite3.connect(DB_PATH)
+
+
+def create_database():
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS parking (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plate TEXT,
+        slot INTEGER,
+        occupied INTEGER,
+        empty INTEGER,
+        time TEXT
+    )
+    """)
+
+    # Migration: if "parking" already existed from before the "slot" column
+    # was added, patch it in place so older databases keep working instead
+    # of crashing on the INSERT below.
+    cursor.execute("PRAGMA table_info(parking)")
+    existing_cols = [row[1] for row in cursor.fetchall()]
+    if "slot" not in existing_cols:
+        cursor.execute("ALTER TABLE parking ADD COLUMN slot INTEGER")
+
+    # Slots table: each row = one specific parking spot, with its current status
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS slots (
+        slot_id INTEGER PRIMARY KEY,
+        status TEXT DEFAULT 'empty',   -- 'empty' or 'occupied'
+        plate TEXT,
+        entry_time TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def sync_slots(num_slots):
+    """
+    Makes sure the number of rows in the slots table matches the number of
+    parking spots the model detected in the latest image.
+    If the detected number of spots increased (e.g. first run), new rows are
+    added with status 'empty'. Existing slots are never touched here, so an
+    occupied slot's status is never overwritten by mistake.
+    """
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM slots")
+    existing = cursor.fetchone()[0]
+
+    if existing < num_slots:
+        for slot_id in range(existing + 1, num_slots + 1):
+            cursor.execute(
+                "INSERT OR IGNORE INTO slots (slot_id, status) VALUES (?, 'empty')",
+                (slot_id,)
+            )
+
+    conn.commit()
+    conn.close()
+
+
+def assign_next_empty_slot(plate, entry_time):
+    """
+    Finds the first empty slot (smallest slot_id with status 'empty') and
+    reserves it for the newly arrived car.
+    Returns the slot_id that was assigned, or None if the lot is full.
+    """
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT slot_id FROM slots WHERE status = 'empty' ORDER BY slot_id ASC LIMIT 1"
+    )
+    row = cursor.fetchone()
+
+    if row is None:
         conn.close()
+        return None
+
+    slot_id = row[0]
+
+    cursor.execute(
+        "UPDATE slots SET status = 'occupied', plate = ?, entry_time = ? WHERE slot_id = ?",
+        (plate, entry_time, slot_id)
+    )
+
+    conn.commit()
+    conn.close()
+    return slot_id
 
 
-def init_db():
-    """Create tables if they don't exist yet, and seed default settings."""
-    with get_conn() as conn:
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS vehicles (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                plate_number TEXT NOT NULL,
-                entry_time TEXT NOT NULL,
-                exit_time TEXT,
-                status TEXT NOT NULL DEFAULT 'IN',
-                image_path TEXT
-            )
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS settings (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            )
-        """)
-        cur.execute("SELECT value FROM settings WHERE key = 'total_spots'")
-        if cur.fetchone() is None:
-            cur.execute(
-                "INSERT INTO settings (key, value) VALUES ('total_spots', ?)",
-                ("20",),
-            )
+def is_plate_parked(plate):
+    """
+    True if this exact plate currently occupies a slot. Used to stop the
+    same car from being checked in twice while it's still parked.
+    """
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT slot_id FROM slots WHERE plate = ? AND status = 'occupied'",
+        (plate,)
+    )
+    row = cursor.fetchone()
+
+    conn.close()
+    return row[0] if row else None
 
 
-# ---------- Settings ----------
+def find_car_by_plate(plate):
+    """
+    "Where is my car?" lookup: returns (slot_id, entry_time) for the slot
+    this plate currently occupies, or None if it isn't parked right now.
+    Matching is case-insensitive since OCR casing can vary run to run.
+    """
+    conn = _connect()
+    cursor = conn.cursor()
 
-def get_total_spots() -> int:
-    with get_conn() as conn:
-        row = conn.execute(
-            "SELECT value FROM settings WHERE key = 'total_spots'"
-        ).fetchone()
-        return int(row["value"]) if row else 20
+    cursor.execute(
+        "SELECT slot_id, entry_time FROM slots WHERE UPPER(plate) = UPPER(?) AND status = 'occupied'",
+        (plate,)
+    )
+    row = cursor.fetchone()
 
-
-def set_total_spots(n: int):
-    with get_conn() as conn:
-        conn.execute(
-            "UPDATE settings SET value = ? WHERE key = 'total_spots'", (str(n),)
-        )
-
-
-# ---------- Vehicle operations ----------
-
-def is_currently_parked(plate_number: str) -> bool:
-    with get_conn() as conn:
-        row = conn.execute(
-            "SELECT id FROM vehicles WHERE plate_number = ? AND status = 'IN'",
-            (plate_number,),
-        ).fetchone()
-        return row is not None
+    conn.close()
+    return row  # (slot_id, entry_time) or None
 
 
-def check_in(plate_number: str, image_path: str = None) -> bool:
-    """Register a vehicle entry. Returns False if plate is already parked
-    or if the lot is full."""
-    if is_currently_parked(plate_number):
-        return False
-    if get_available_spots() <= 0:
-        return False
+def free_slot_by_plate(plate):
+    """
+    Frees up the slot occupied by a given plate (e.g. when the car leaves).
+    Returns the freed slot_id, or None if the plate wasn't found in any slot.
+    """
+    conn = _connect()
+    cursor = conn.cursor()
 
-    with get_conn() as conn:
-        conn.execute(
-            """INSERT INTO vehicles (plate_number, entry_time, status, image_path)
-               VALUES (?, ?, 'IN', ?)""",
-            (plate_number, datetime.now().isoformat(timespec="seconds"), image_path),
-        )
-    return True
+    cursor.execute(
+        "SELECT slot_id FROM slots WHERE plate = ? AND status = 'occupied'",
+        (plate,)
+    )
+    row = cursor.fetchone()
 
+    if row is None:
+        conn.close()
+        return None
 
-def check_out(plate_number: str) -> bool:
-    """Register a vehicle exit. Returns False if the plate isn't currently parked."""
-    with get_conn() as conn:
-        row = conn.execute(
-            "SELECT id FROM vehicles WHERE plate_number = ? AND status = 'IN' "
-            "ORDER BY entry_time DESC LIMIT 1",
-            (plate_number,),
-        ).fetchone()
-        if row is None:
-            return False
-        conn.execute(
-            "UPDATE vehicles SET status = 'OUT', exit_time = ? WHERE id = ?",
-            (datetime.now().isoformat(timespec="seconds"), row["id"]),
-        )
-    return True
+    slot_id = row[0]
+
+    cursor.execute(
+        "UPDATE slots SET status = 'empty', plate = NULL, entry_time = NULL WHERE slot_id = ?",
+        (slot_id,)
+    )
+
+    conn.commit()
+    conn.close()
+    return slot_id
 
 
-def get_active_vehicles():
-    with get_conn() as conn:
-        return conn.execute(
-            "SELECT * FROM vehicles WHERE status = 'IN' ORDER BY entry_time DESC"
-        ).fetchall()
+def get_all_slots():
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT slot_id, status, plate, entry_time FROM slots ORDER BY slot_id ASC")
+    rows = cursor.fetchall()
+
+    conn.close()
+    return rows
 
 
-def get_all_logs(limit: int = 200):
-    with get_conn() as conn:
-        return conn.execute(
-            "SELECT * FROM vehicles ORDER BY entry_time DESC LIMIT ?", (limit,)
-        ).fetchall()
+def insert_data(plate, slot, occupied, empty, time):
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    INSERT INTO parking (plate, slot, occupied, empty, time)
+    VALUES (?, ?, ?, ?, ?)
+    """, (plate, slot, occupied, empty, time))
+
+    conn.commit()
+    conn.close()
 
 
-def get_available_spots() -> int:
-    total = get_total_spots()
-    with get_conn() as conn:
-        occupied = conn.execute(
-            "SELECT COUNT(*) AS c FROM vehicles WHERE status = 'IN'"
-        ).fetchone()["c"]
-    return max(total - occupied, 0)
+def get_all_data():
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, plate, slot, occupied, empty, time FROM parking")
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows
+
+
+def delete_all_data():
+    conn = _connect()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM parking")
+
+    conn.commit()
+    conn.close()
