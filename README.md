@@ -97,4 +97,4 @@ The license plate detection model achieved the following metrics:
 
 ---
 ## video
-
+https://drive.google.com/drive/folders/1YI0CWci-lHB_D7C44NzBA1HKdY68ctey?dmr=1&ec=wgc-drive-%5Bmodule%5D-goto
