@@ -1,1 +1,45 @@
-Smart Parking System using YOLOv8 & EasyOCRProject OverviewModern urban parking facilities often suffer from manual entry tracking, inefficient slot management, and human error. This project presents an automated Smart Parking & License Plate Recognition System leveraging YOLOv8 object detection, EasyOCR, SQLite data persistence, and a Streamlit dashboard.  The system performs dual real-time tasks: detecting available vs. occupied parking slots dynamically and extracting vehicle license plate numbers at entry gates to automate space allocation and tracking.  ObjectivesAutomate Slot Occupancy: Detect empty and occupied parking spaces dynamically from lot camera feeds.  Automate Plate Recognition: Detect vehicle license plates and extract registration text using OCR.  Dynamic Database Management: Automatically map parking capacity, log entry/exit transactions, and enforce slot assignment rules using SQLite.  User-Friendly Dashboard: Provide a real-time Streamlit interface for lot monitoring, plate lookups ("Where Is My Car?"), and historical logging.  Core Modules & Architecture1. Computer Vision PipelinePlate Detection & OCR: Custom YOLOv8 model detects license plate bounding boxes, which are cropped and passed into EasyOCR for character recognition.  Occupancy Detection: Classifies slots as empty or occupied, spatial sorting (top-to-bottom, left-to-right) ensures stable slot numbering.  2. Database Integration (database.py)Thread-safe SQLite management handling parking and slots tables.  Core Functions: sync_slots(), assign_next_empty_slot(), is_plate_parked(), and find_car_by_plate().  ModelThis project utilizes YOLOv8 (Ultralytics) for visual object detection and EasyOCR for textual recognition.  Why YOLOv8?Fast real-time inference speedHigh detection accuracy on localized targetsLightweight architecture (yolov8n.pt) compatible with edge GPU deployment  Evaluation MetricsThe license plate detection model achieved the following metrics:  MetricValuePrecisionHigh ConvergenceRecallHigh ConvergencemAP@0.5> 0.99  mAP@0.5:0.95~ 0.67  
+# Smart Parking System using YOLOv8 & EasyOCR
+
+## Project Overview
+Modern urban parking facilities often suffer from manual entry tracking, inefficient slot management, and human error. This project presents an automated **Smart Parking & License Plate Recognition System** leveraging YOLOv8 object detection, EasyOCR, SQLite data persistence, and a Streamlit dashboard[cite: 1, 2, 5].
+
+The system performs dual real-time tasks: detecting available vs. occupied parking slots dynamically and extracting vehicle license plate numbers at entry gates to automate space allocation and tracking.
+
+## Objectives
+* **Automate Slot Occupancy:** Detect empty and occupied parking spaces dynamically from lot camera feeds[cite: 1, 5].
+* **Automate Plate Recognition:** Detect vehicle license plates and extract registration text using OCR[cite: 1, 5].
+* **Dynamic Database Management:** Automatically map parking capacity, log entry/exit transactions, and enforce slot assignment rules using SQLite.
+* **User-Friendly Dashboard:** Provide a real-time Streamlit interface for lot monitoring, plate lookups ("Where Is My Car?"), and historical logging.
+
+## Core Modules & Architecture
+
+### 1. Computer Vision Pipeline
+* **Plate Detection & OCR:** Custom YOLOv8 model detects license plate bounding boxes, which are cropped and passed into EasyOCR for character recognition[cite: 1, 3, 5, 6].
+* **Occupancy Detection:** Classifies slots as empty or occupied, spatial sorting (top-to-bottom, left-to-right) ensures stable slot numbering.
+
+### 2. Database Integration (`database.py`)
+* Thread-safe SQLite management handling `parking` and `slots` tables[cite: 2].
+* **Core Functions:** `sync_slots()`, `assign_next_empty_slot()`, `is_plate_parked()`, and `find_car_by_plate()`[cite: 2].
+
+---
+
+## Dataset
+The dataset contains annotated parking lot images and license plate crop regions designed for training and validating detection and OCR performance.
+
+### Typical Classes & Annotations:
+* `empty_slot`
+* `occupied_slot`
+* `license_plate`
+
+### Dataset Structure
+```text
+dataset/
+├── train/
+│   ├── images/
+│   └── labels/
+├── valid/
+│   ├── images/
+│   └── labels/
+└── test/
+    ├── images/
+    └── labels/
