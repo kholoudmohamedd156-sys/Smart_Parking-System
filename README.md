@@ -63,15 +63,6 @@ The license plate detection model achieved the following metrics:
 | **mAP0.5** | **> 0.99** |
 | **mAP0.5:0.95** | **~ 0.67** |
 
-Smart-Parking-System
-│
-├── dataset/             # Annotated slot & license plate images
-├── models/              # Trained weights (e.g., best.pt)
-├── database.py          # SQLite database connection & CRUD logic
-├── app.py               # Streamlit web interface & UI components
-├── README.md            # Project documentation
-└── requirements.txt     # Dependencies
-
 ### Dashboard Capabilities
 * **Gate & Lot Analysis:** Simultaneous analysis of entry gate plate capture and overall lot occupancy status[cite: 5].
 * **Visual Slot Highlights:** Bounding box visualization (Green = Empty, Red = Occupied, Orange = Newly Assigned)[cite: 5].
