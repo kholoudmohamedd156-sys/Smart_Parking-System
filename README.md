@@ -95,3 +95,5 @@ The license plate detection model achieved the following metrics:
 * Menna Khaled
 * Rawan Mohamed
 
+## video
+<!-- Failed to upload "Smart_Parking_System(NTI).mp4" -->
