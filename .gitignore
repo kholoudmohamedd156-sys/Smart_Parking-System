@@ -1,0 +1,37 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Model weights
+*.pt
+*.pth
+*.onnx
+*.whl
+
+# Runtime artifacts
+runs/
+snapshots/
+*.db
+
+# Cloned/data folders
+Car-plate-detection-1/
+parking-lot-1/
+
+# Misc local files
+*.jpg
+*.jpeg
+*.png
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.vscode/
