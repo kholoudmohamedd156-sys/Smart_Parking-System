@@ -43,3 +43,30 @@ dataset/
 └── test/
     ├── images/
     └── labels/
+## Model
+This project utilizes **YOLOv8** (Ultralytics) for visual object detection and **EasyOCR** for textual recognition.
+
+### Why YOLOv8?
+* Fast real-time inference speed
+* High detection accuracy on localized targets
+* Lightweight architecture (`yolov8n.pt`) compatible with edge GPU deployment
+
+---
+
+## Training
+Example training configuration (executed with CUDA acceleration on NVIDIA Quadro P620):
+
+```python
+from ultralytics import YOLO
+
+# Load pre-trained lightweight YOLOv8 model
+model = YOLO("yolov8n.pt")
+
+# Train model on custom parking/plate dataset
+model.train(
+    data="data.yaml",
+    epochs=100,
+    imgsz=640,
+    batch=16,
+    device=0
+)
