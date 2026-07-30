@@ -43,10 +43,12 @@ dataset/
 └── test/
     ├── images/
     └── labels/
+
+
 ## Model
 This project utilizes **YOLOv8** (Ultralytics) for visual object detection and **EasyOCR** for textual recognition.
 
-### Why YOLOv8?
+## Why YOLOv8?
 * Fast real-time inference speed
 * High detection accuracy on localized targets
 * Lightweight architecture (`yolov8n.pt`) compatible with edge GPU deployment
@@ -100,4 +102,5 @@ Smart-Parking-System
 * Member 1
 * Member 2
 * Member 3
+
 * Member 4
