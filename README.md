@@ -96,5 +96,10 @@ The license plate detection model achieved the following metrics:
 * [Rawan Mohamed](https://www.linkedin.com/in/rawan-mohamed5?)
 
 ---
-## video
+## video(UI)
 https://drive.google.com/drive/folders/1YI0CWci-lHB_D7C44NzBA1HKdY68ctey?dmr=1&ec=wgc-drive-%5Bmodule%5D-goto
+---
+## Images
+<img width="792" height="806" alt="Image" src="https://github.com/user-attachments/assets/b87ec3c2-f433-49e5-aed0-8d7f4745dda3" />
+
+<img width="837" height="717" alt="Image" src="https://github.com/user-attachments/assets/fbe48708-d517-4ca7-9c2d-a75f4be546bf" />
