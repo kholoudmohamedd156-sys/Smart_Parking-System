@@ -14,7 +14,7 @@ IMAGE_PATH = r"C:\Users\PC\Downloads\images_ocr\images (1).jpg"
 results = model(IMAGE_PATH)
 result_image = results[0].plot()
 
-print("Shape of result image:", result_image.shape)
+print(f" [Image: {filename}] ---> Detected Plate: {plate_number}")
 
 plt.figure(figsize=(5, 5))
 plt.imshow(result_image[:, :, ::-1])
